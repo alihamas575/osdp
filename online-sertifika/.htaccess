@@ -1,0 +1,113 @@
+# Online Sertifika Sistemi - Güvenlik Ayarları
+
+# Güvenlik başlıkları
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# HTTPS yönlendirmesi (SSL varsa)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Gizli dosyaları gizle
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Hassas dosyaları gizle
+<FilesMatch "\.(sql|log|md|txt|bak)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Config klasörünü gizle
+<Directory "config">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Backup klasörünü gizle
+<Directory "backups">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# uploads klasöründeki PHP dosyalarını çalıştırma
+<Directory "assets/uploads">
+    <FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+        Order Deny,Allow
+        Deny from all
+    </FilesMatch>
+</Directory>
+
+# PHP ayarları
+<IfModule mod_php7.c>
+    # Güvenlik ayarları
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_flag expose_php Off
+    
+    # Dosya yükleme ayarları
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_file_uploads 10
+    
+    # Bellek ve zaman limitleri
+    php_value memory_limit 128M
+    php_value max_execution_time 300
+    
+    # Session güvenliği
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure On
+    php_value session.cookie_samesite Strict
+</IfModule>
+
+# Dosya tiplerini engelle
+<FilesMatch "\.(inc|conf|config)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Dizin listelemeyi kapat
+Options -Indexes
+
+# Sunucu bilgilerini gizle
+ServerTokens Prod
+ServerSignature Off
+
+# Dosya türü ayarları
+<IfModule mod_mime.c>
+    AddType application/font-woff2 .woff2
+    AddType image/svg+xml .svg
+</IfModule>
+
+# Tarayıcı cache ayarları
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Sıkıştırma
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript
+</IfModule>
+
+# Hata sayfaları
+ErrorDocument 404 /online-sertifika/index.php
+ErrorDocument 403 /online-sertifika/index.php
+ErrorDocument 500 /online-sertifika/index.php
